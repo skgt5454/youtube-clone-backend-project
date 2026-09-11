@@ -1,6 +1,6 @@
 import {Router} from 'express' // yha Router bracket ke andar isliye likha kyunki express ke andar Router ek named export hai
 import { registerUser } from "../controllers/user.controller.js"
-import {upload} from "../middlewares/multer.middleware.js"
+import upload from "../middlewares/multer.middleware.js"
 
 const router = Router()
 
@@ -12,7 +12,7 @@ router.route("/register").post(
         {
            name:"coverImage",maxCount:1
         }
-    ]),registerUser)
+    ]),registerUser)//hm registerUser method execute  krne se pehle middleware lga rhe h 
     
 export default router
 

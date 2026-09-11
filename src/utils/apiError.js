@@ -1,6 +1,6 @@
 class ApiError extends Error
 {
-    constructor(statuscode,error=[],message="something went wrong",stack="")
+    constructor(statuscode,message="something went wrong",error=[],stack="")
     {
       super(message)//JavaScript ka built-in Error constructor mainly message leta hai:
       this.statuscode = statuscode;
