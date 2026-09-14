@@ -14,30 +14,29 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     const existedUser = await User.findOne({ $or: [{ username }, { email }] })
-    console.log(existedUser)
+    console.log(existedUser) 
     if (existedUser) {
         throw new ApiError(409, "user is already exist")
     }
-
     const avatarLocalPath = req.files?.avatar?.[0]?.path
-    //  console.log(avatarLocalPath)
-    const coverImageLocalPath = req.files?.coverImage?.[0]?.path
-    // console.log(req.files)
-     if (!avatarLocalPath) { throw new ApiError(400, "avatar file required") }
-
-     if (!coverImageLocalPath) { throw new ApiError(400, "coverImage file required") }
-    // console.log(avatarLocalpath)
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage)&& req.files.coverImage.length>0)
+    {
+      coverImageLocalPath = req.files.coverImage[0].path
+    }
+    // const coverImageLocalPath = req.files?.coverImage?.[0]?.path
+    
+    if (!avatarLocalPath) { throw new ApiError(400, "avatar file required") }
     const avatar = await uploadOnCloudinary(avatarLocalPath)
-
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
-
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath);// agr yha hmm agr coverImage nhi ho rha to ye empty string de rha h h error nhi de rha
+    
     if (!avatar) { throw new ApiError(400, "avatar file is not upload") }
 
     const user = await User.create(
         {
             fullname,
             avatar: avatar.url,
-            coverImage: coverImage?.url || " ",
+            coverImage: coverImage?.url || "",
             email,
             password,
             username: username.toLowerCase()
@@ -49,7 +48,7 @@ const registerUser = asyncHandler(async (req, res) => {
      if(!createdUser){throw new ApiError(500,"something went wrong whle register the user")}
 
     return res.status(200).json(
-    (new apiresponse(200,createdUser,"something went wrong while registering the user"))
+    (new apiresponse(200,createdUser,"first user is registered successfully"))
 )
 })
 export { registerUser }
