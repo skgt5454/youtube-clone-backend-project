@@ -1,15 +1,17 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js"
-// import upload  from "../middlewares/multer.middleware.js";
+//import upload  from "../middlewares/multer.middleware.js";
 import { ApiError } from "../utils/apiError.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import {apiresponse} from "../utils/apiResponse.js"
+import jwt from "jsonwebtoken"
 const generateRefreshTokenAndAccesstoken = async(userId)=>
 {
     try{
         const user = await User.findById(userId);
-        const accessToken = await user.generateAccessToken
-        const refreshToken = await user.generateRefreshToken
+        const accessToken = await user.generateAccessToken()
+        const refreshToken = await user.generateRefreshToken()
+
         user.refreshToken = refreshToken
 
         await user.save({validateBeforeSave:false})
@@ -19,7 +21,7 @@ const generateRefreshTokenAndAccesstoken = async(userId)=>
     catch(error)
     {
         console.log(error)
-        throw new ApiError(500,"something went wrong while generating access token and refresh token")
+        throw new ApiError(500,"something went wrong while generating access token and refresh token",error)
     }
 }
 const registerUser = asyncHandler(async (req, res) => {
@@ -86,7 +88,7 @@ const loginUser = asyncHandler(async(req,res)=>{
     const ispasswordvalid = await user.ispasswordCorrect(password)
     if(!ispasswordvalid){throw new ApiError(401,"invalid user credentials")}
 
-    const {refreshToken,accessToken} = generateRefreshTokenAndAccesstoken(user._id);
+    const {refreshToken,accessToken} = await generateRefreshTokenAndAccesstoken(user._id);
 
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
 
@@ -95,7 +97,7 @@ const loginUser = asyncHandler(async(req,res)=>{
         secure:true
     }
 
-    return res.status(200).cookie("accessToken",accessToken.options).cookie("refreshToken",refreshToken,options).
+    return res.status(200).cookie("accessToken",accessToken,options).cookie("refreshToken",refreshToken,options).
     json(new apiresponse(200,{
         user:loggedInUser,accessToken,refreshToken
     }," User loggedIn successfully"))
@@ -117,12 +119,44 @@ const logoutUser = asyncHandler(async(req,res)=>{
         httpOnly:true,
         secure:true
     }
-    return res.status(200).clearcookie("accessToken",options)
-    .clearcookie("refreshToken",options).json(new apiresponse(200,{},"user logged out"))
-
+    return res.status(200).clearCookie("accessToken",options)
+    .clearCookie("refreshToken",options).json(new apiresponse(200,{},"user logged out"))
 })
-export { registerUser,loginUser,logoutUser }
-// //Request
+const refreshAccessToken =asyncHandler(async(req,res)=>
+{
+    try {
+        const incomingRefreshToken = req.cookie.refreshToken || req.body.refreshToken
+        if(!incomingRefreshToken)
+        {
+            throw new ApiError(400,"unauthorized access");
+        }
+        const decodedToken = jwt.verify(incomingRefreshToken,process.env.REFRESH_TOKEN_SECRET);
+    
+        const user = await User.findById(decodedToken?._id)
+    
+        if(!user){throw new ApiError(401,"invalid refreshToken")}
+    
+        if(incomingRefreshToken!==user?.refreshToken)
+        {
+            throw new ApiError(401,"refreshToken is expired or not");
+        }
+    
+        const options = {
+            httpOnly:true,
+            secure:true
+        }
+        const {accessToken,newrefreshToken}= await generateRefreshTokenAndAccesstoken(user._id);
+    
+        return res.status(200).cookie("accessToken",accessToken,options).cookie("refreshToken",newrefreshToken,options).json(new apiresponse(200,{accessToken,refreshToken:newrefreshToken},"refreshToken accessed successfully"))
+    
+    } catch (error) {
+        throw new ApiError(401,error?.message,"invalid refreshToken")
+    }
+}) 
+export { registerUser,loginUser,logoutUser,refreshAccessToken }
+
+
+// Request
 //    ↓
 // upload.fields()
 //    ↓
@@ -135,14 +169,12 @@ export { registerUser,loginUser,logoutUser }
 // console.log(req.files)
 
 
-
 // if  const { username, fullname, email, password } = req.body;
 // so in js automatic is->
 // const username = req.body.username;
 // const fullname = req.body.fullname;
 // const email = req.body.email;
 // const password = req.body.password;
-
 
 
 //console.log(req.files)=>
@@ -158,4 +190,4 @@ export { registerUser,loginUser,logoutUser }
 //       filename: 'mahadev.jpg',
 //       size: 107995
 //     }
-//   ],
+//   ]

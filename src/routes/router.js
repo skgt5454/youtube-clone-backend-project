@@ -1,5 +1,5 @@
 import {Router} from 'express' // yha Router bracket ke andar isliye likha kyunki express ke andar Router ek named export hai
-import { loginUser, registerUser, logoutUser } from "../controllers/user.controller.js"
+import { loginUser, registerUser, logoutUser, refreshAccessToken } from "../controllers/user.controller.js"
 import upload from "../middlewares/multer.middleware.js"
 import { verifyJwt } from '../middlewares/auth.middleware.js'
 const router = Router()
@@ -16,6 +16,7 @@ router.route("/register").post(
 router.route("/login").post(loginUser)
 
 router.route("/logout").post(verifyJwt,logoutUser)//yha hmne middleware yhi inject kr dia method se pehle. aur bhi middleware ho to unhr=e commma lgakar likh do
+router.route("/refresh Token").post(refreshAccessToken)
 export default router
 
 
