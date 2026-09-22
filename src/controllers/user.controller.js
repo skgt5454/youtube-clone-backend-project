@@ -145,15 +145,103 @@ const refreshAccessToken =asyncHandler(async(req,res)=>
             httpOnly:true,
             secure:true
         }
-        const {accessToken,newrefreshToken}= await generateRefreshTokenAndAccesstoken(user._id);
+        const {newaccessToken,newrefreshToken}= await generateRefreshTokenAndAccesstoken(user._id);
     
-        return res.status(200).cookie("accessToken",accessToken,options).cookie("refreshToken",newrefreshToken,options).json(new apiresponse(200,{accessToken,refreshToken:newrefreshToken},"refreshToken accessed successfully"))
+        return res.status(200).cookie("accessToken",newaccessToken,options).cookie("refreshToken",newrefreshToken,options).json(new apiresponse(200,{accessToken:newaccessToken,refreshToken:newrefreshToken},"refreshToken accessed successfully"))
     
     } catch (error) {
         throw new ApiError(401,error?.message,"invalid refreshToken")
     }
 }) 
-export { registerUser,loginUser,logoutUser,refreshAccessToken }
+const changeCurrentPassword = asyncHandler(async(req,res)=>
+{
+    const {oldPassword,newPassword} = req.body
+    console.log(req.user);
+    const user = await User.findById(req.user?._id);
+
+    const isPasswordCorrect = await user.ispasswordCorrect(oldPassword);
+
+    if(!isPasswordCorrect)
+    {
+        throw new ApiError(400,'invalid old password');
+    }
+    user.password = newPassword
+    user.save({validationBeforeSave:false})
+
+    return new apiresponse(200,{},"password is changed")
+})
+const getcurrentUser = asyncHandler(async(req,res)=>
+{
+    res.status(200).json(200,req.user,"current user fetched successfully")
+})
+const updateAccountDetails = asyncHandler(async(req,res)=>{
+   const {fullName,email} = req.body;
+
+   if(!fullName || !email)
+   {
+    throw new ApiError(400,"all fields are required");
+   }
+
+   const user = User.findByIdAndUpdate(
+    req.user?._id,
+    {
+        $set:
+        {
+            fullName,
+            email:email
+        }
+    },
+    {
+            new:true
+    }
+   ).select(-password)
+   return res.status(200).json(new apiresponse(200,user,"account details update successfully"));
+})
+const updateUserAvatar = asyncHandler(async(req,res)=>{
+    const avatarlocalpath = req.file?.path
+
+    if(!avatarlocalpath){throw new ApiError(400,"avatar file is missing")}
+
+    const avatar = await uploadOnCloudinary(avatarlocalpath);
+
+    if(!avatar.url){throw new ApiError(400,"error while uploading the avatarlocalpath")}
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                avatar:avatar.url // idhar avatar h wo cloudinay ka url h
+            }
+        },
+        {
+            new:true
+        }
+    ).select("-password")
+    res.status(200).json(new apiresponse(200,user,"avatar file is successfully updated"));
+})
+const updateUserCoverImage = asyncHandler(async(req,res)=>{
+    const CoverImagelocalpath = req.file?.path
+
+    if(!CoverImagelocalpath){throw new ApiError(400,"avatar file is missing")}
+
+    const coverImage = await uploadOnCloudinary(CoverImagelocalpath);
+
+    if(!coverImage.url){throw new ApiError(400,"error while uploading the CoverImagelocalpath")}
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                coverImage:coverImage.url //MongoDB ke coverImage field ko Cloudinary ke URL se update karo. monngodb me only coverImage and avtar ka url rhta hai
+            }
+        },
+        {
+            new:true
+        }
+    ).select("-password")
+    res.status(200).json(new apiresponse(200,user,"avatar file is successfully updated"));
+})
+export { registerUser,loginUser,logoutUser,refreshAccessToken,updateAccountDetails,getcurrentUser,changeCurrentPassword,updateUserAvatar,updateUserCoverImage } 
 
 
 // Request
