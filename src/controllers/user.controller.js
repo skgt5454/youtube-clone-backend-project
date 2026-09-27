@@ -256,9 +256,115 @@ const updateUserCoverImage = asyncHandler(async(req,res)=>{
     ).select("-password")
     res.status(200).json(new apiresponse(200,user,"avatar file is successfully updated"));
 })
-export { registerUser,loginUser,logoutUser,refreshAccessToken,updateAccountDetails,getcurrentUser,changeCurrentPassword,updateUserAvatar,oldAvatarDeleted,updateUserCoverImage } 
+const getUserChannelProfile = asyncHandler(async(req,res)=>{
+  const {username} = req.params;
+  if(!username?.trim()){
+    throw new ApiError(400,"username is required")
+  }
+  const channel = await User.aggregate([
+    {
+        $match:{
+            username:username?.toLowerCase()
+        }
+    },
+    //subscribers
+    {
+        $lookup:{
+            from:"subscriptions",
+            localField:"_id",
+            foreignField:"channel",
+            as:"subscribers"
+        }
+    },
+    //subscribed
+    {
+        $lookup:{
+            from:"subscriptions",
+            localField:"_id",
+            foreignField:"subscriber",
+            as:"subscribedTo"
+        }
+    },
+    // ab hum kuch fields aur add kr rhe h original User object me jo ki subscribersCount,channelsSubscribedToCount and isSubscribed
+    {
+        $addFields:{
+            subscribersCount:{$size:"$subscribers"},
+            channelsSubscribedToCount:{$size:"$subscribedTo"},
+            isSubscribed:{ // ye isliye use kiya taaki pta lg ske ki hmne already subscribed kr rkha h ya nhi kisiko
+                $cond:{
+                    if:{$in:[req.user?._id,"$subscribers.subscriber"]},
+                    then: true,
+                    else: false
+                }
+            }
+        } 
+    },
+    // ab hum project field use kr rhe h kyunki yha hme kuch fields hi chahiye h original User object me se. aur baki fields ko remove krna h. to hum $project use kr rhe h
+    {
+        $project:{
+            fullname:1,
+            username:1,
+            subscribersCount:1,
+            channelsSubscribedToCount:1,
+            isSubscribed:1,
+            avatar:1,
+            coverImage:1,
+            email:1
+        }
 
+    }
+  ])
+  //idhar check krenge ki channel array empty h ya nhi. agr empty h to iska matlab h ki koi bhi user nhi mila jiska username hmne req.params me diya h. to hm 404 error throw krenge
+  if(!channel?.length){throw new ApiError(404,"channel not found")}
+ console.log(channel);
+ return res.status(200).json(new apiresponse(200,channel[0],"channel profile fetched succesfullly"))
+})
+// interview important question ki req.user._id kya return krta hai -> ye deta h ek string , jaise ki mongodb me _id:ObjectId('54ds5f77d511f5ds1dsd84f1f') aisi kuch id hoti h but ye jo sirf string hai ObjectId ke andar ye id nhi hai. hm use kr rhe h mongoose so ye mongoose automatically convert kr deta h string ko mongodb ki ObjectId me. to agr hmne req.user._id ko mongoose ke kisi bhi method me pass kiya to ye automatically convert ho jaega ObjectId me. to ye ek string return krta h jo ki mongodb ke _id field ke liye unique hoti h.
+const getWatchHistory = asyncHandler(async(req,res)=>{
+    const user = await User.aggregate([
+        {
+            $match:{
+                // _id:req.user?._id ye error aayega kyunki yha mongoose kam nhi krta aggregation pipeline ka jitna code h vo directly hi jata h to hme use krna hoga mongoose.Types.ObjectId(req.user?._id) taaki ye string ko ObjectId me convert kr de
+              _id: new mongoose.Types.ObjectId(req.user?._id) // hmne new kyu use kiya h
+            }
+        },
 
+        {
+            $lookup:{
+                from:"Video",
+                localField:"watchHistory",
+                foreignField:"_id",
+                as:"watchHistory",
+                pipeline:[
+                    {
+                        $lookup:{
+                            from:"user",
+                            localField:"owner",
+                            foreignField:"_id",
+                            as:"owner",
+                            pipeline:[
+                                {
+                                    $project:{
+                                         fullName:1,
+                                         username:1,
+                                         avatar:1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    // ye wali pipeline mene iskiye use ki h taaki owner array me sirf ek hi object hoga.
+                    {
+                        $owner:{$first:"$owner"}
+                    }
+                ]
+            }
+        }
+    ])
+    return res.status(200).json(new apiresponse(200,user[0].watchHistory,"watch history fetched successfully"))
+})
+
+export { registerUser,loginUser,logoutUser,refreshAccessToken,updateAccountDetails,getcurrentUser,changeCurrentPassword,updateUserAvatar,oldAvatarDeleted,updateUserCoverImage,getUserChannelProfile } 
 // Request
 //    ↓
 // upload.fields()
