@@ -1,0 +1,6 @@
+$kind: http-request
+name: "{{server}}/users/c/saksham"
+description: ""
+url: "{{server}}/users/c/saksham"
+method: GET
+order: 3909978031166325

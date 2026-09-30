@@ -31,12 +31,18 @@ router.route("/update-cover-image").patch(verifyJwt,upload.single("coverImage"),
 
 router.route("/delete-old-avatar").delete(verifyJwt,oldAvatarDeleted)
 
-router.route("/get-user-channel-profile/:userId").get(verifyJwt,getUserChannelProfile)
+router.route("/c/:username").get(verifyJwt,getUserChannelProfile)
 
-router.route("/get-watch-history").get(verifyJwt,getWatchHistory)
+router.route("/history").get(verifyJwt,getWatchHistory)
 
 export default router
+// Yahan :username Express ka syntax hai dynamic route parameter define karne ke liye.
 
+// : → parameter ko define karta hai.
+
+// username → parameter ka naam hai.
+
+// /c/ → fixed route hai
 
 
 

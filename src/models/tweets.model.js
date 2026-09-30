@@ -8,7 +8,6 @@ const tweetSchema = new mongoose.Schema({
     type:Schema.Types.ObjectId,
     ref:"user"
   }
-
 },
 {
     timestamps:true
