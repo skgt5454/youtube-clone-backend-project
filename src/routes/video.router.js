@@ -1,9 +1,11 @@
 import {Router} from 'express'
-import{uploadAVideo,getVideoById, updateVideo, deleteVideo, publishAVideo} from "../controllers/video.controller.js"
+import{getAllVideos,getVideoById, updateAVideo, deleteVideo, publishAVideo,togglePublishStatus} from "../controllers/video.controller.js"
 import upload from "../middlewares/multer.middleware.js"
 import { verifyJwt } from '../middlewares/auth.middleware.js'
-
+import {Video} from "../models/video.model.js"
 const router = Router()
+
+router.route("/getallvideos").get(getAllVideos)
 
 router.route("/uploadvideo").post(
     verifyJwt,
@@ -14,16 +16,16 @@ router.route("/uploadvideo").post(
         {
             name:"thumbnail",maxCount:1
         }
-    ]),uploadAVideo
+    ]),publishAVideo
 )
-router.route("uploadvideo").post(publishAVideo)
+
 router.route("/video/:videoId").get(getVideoById);
 
-router.route("/updateVideo/:videoId").patch(verifyJwt,upload.single(thumbnail),updateVideo)
+router.route("/updateVideo/:videoId").patch(verifyJwt,upload.single("thumbnail"),updateAVideo)
+
+router.route("/deletevideo/:videoId").patch(verifyJwt,deleteVideo)
 
 router.route("/togglepublication/:videoId").patch(verifyJwt,togglePublishStatus)
-
-router.route("deletevideo/:videoId").patch(verifyJwt,deleteVideo)
 
 export default router
 

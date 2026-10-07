@@ -1,6 +1,8 @@
 import connectDB from "./db/index.js"
 import {app} from "./app.js"
-
+import dns from "dns";
+// ye isliye use kiya taaki jo phle default dns server use ho rha tha mongodb ke servers janne ke liye uski jagah hmne google ka public server use kr lia
+dns.setServers(["8.8.8.8"]);
 connectDB().then(
     ()=>{app.listen(process.env.PORT || 2000,()=>{console.log(`server is running on : ${process.env.PORT||2000}`)})
     

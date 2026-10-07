@@ -212,7 +212,7 @@ const oldAvatarDeleted = asyncHandler(async (req, res) => {
     await cloudinary.uploader.destroy(avatarPublicid, { resource_type: "image" })
     user.avatar = null;
 
-    const updateuser = await user.save({ validateBeforeSave: false })
+    const updateuser = await user.save({ validateBeforeSave: false }).select(-password -refreshToken)
 
     return res.status(200).json(new apiresponse(200, updateuser, "avatar is deleted successfully"));
 })

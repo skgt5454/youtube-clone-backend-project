@@ -21,3 +21,6 @@ const commentSchema = new mongoose.Schema({
 commentSchema.plugin(mongooseAggregatePaginate) // ye bss ability deta hai h ki kha se kha tk video dene ya comment dena hai
 
 export const Comment = mongoose.model("Comment",commentSchema)
+
+
+

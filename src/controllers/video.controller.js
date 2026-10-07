@@ -3,7 +3,7 @@ import { Video } from "../models/video.model.js"
 import { ApiError } from "../utils/apiError.js"
 import { apiresponse } from "../utils/apiResponse.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
-
+import { asyncHandler } from "../utils/asyncHandler.js"
 const getAllVideos= asyncHandler(async(req,res)=>{
    const {page = 1,limit = 10,query , sortBy , sortType = "desc", userId} = req.query
    console.log(req.query)
@@ -14,7 +14,9 @@ const getAllVideos= asyncHandler(async(req,res)=>{
    {
     filter.$or =
     [
-        {title:{$regex:query},options:"i"},
+        {
+            title:{$regex:query},options:"i"
+        },
         {
             description:{$regex:query,$options:"i"}
         }
@@ -84,7 +86,7 @@ const getVideoById = asyncHandler(async (req, res) => {
 
     return res.status(200).json(new apiresponse(200,video,"get a video by videoid is successfully"))
 })
-const updateVideo  = asyncHandler(async (req,res)=>{
+const updateAVideo  = asyncHandler(async (req,res)=>{
     const { videoId } = req.params;
     
     const {title,description} = req.body
@@ -151,7 +153,7 @@ const togglePublishStatus = asyncHandler(async(req,res)=>{
     const updatevideo = await video.save()
 return res.status(200).json(new apiresponse(200,updatevideo,"togglepublishstatus is updated"))
 })
-export {getAllVideos,publishAVideo,updateVideo,getVideoById,deleteVideo,togglePublishStatus}
+export {updateAVideo,getAllVideos,publishAVideo,getVideoById,deleteVideo,togglePublishStatus}
 
 
 
