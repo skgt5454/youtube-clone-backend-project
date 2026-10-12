@@ -6,7 +6,11 @@ const tweetSchema = new mongoose.Schema({
   },
   owner:{
     type:Schema.Types.ObjectId,
-    ref:"user"
+    ref:"User"
+  },
+  video:{
+    type:Schema.Types.ObjectId,
+    ref:"Video"
   }
 },
 {
