@@ -2,7 +2,6 @@ import {Router} from 'express'
 import{getAllVideos,getVideoById, updateAVideo, deleteVideo, publishAVideo,togglePublishStatus} from "../controllers/video.controller.js"
 import upload from "../middlewares/multer.middleware.js"
 import { verifyJwt } from '../middlewares/auth.middleware.js'
-import {Video} from "../models/video.model.js"
 const router = Router()
 
 router.route("/getallvideos").get(getAllVideos)

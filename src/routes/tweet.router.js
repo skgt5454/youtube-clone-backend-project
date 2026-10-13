@@ -11,4 +11,4 @@ router.route("/updateTweet/:tweetId").patch(verifyJwt,updateTweet)
 
 router.route("/deleteTweet/:tweetId").patch(verifyJwt,deleteTweet)
 
-export {router}
+export default router

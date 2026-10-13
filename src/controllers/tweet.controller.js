@@ -1,9 +1,11 @@
 import mongoose,{ isValidObjectId } from "mongoose";
-import {Tweet} from "../models/tweet.model.js"
+import {Tweet} from "../models/tweets.model.js"
 import { ApiError } from "../utils/apiError.js";
 import {apiresponse} from "../utils/apiResponse.js"
 import {Video} from "../models/video.model.js"
-const createTweet = asynHandler(async(req,res)=>{
+import { asyncHandler } from "../utils/asyncHandler.js";
+
+const createTweet = asyncHandler(async(req,res)=>{
     const {content} = req.body;
     const { videoId } = req.params
     if(!videoId)
