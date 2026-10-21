@@ -261,11 +261,11 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         },
         //subscribed
         {
-            $lookup: {
-                from: "subscriptions",
-                localField: "_id",
-                foreignField: "subscriber",
-                as: "subscribedTo"
+            $lookup:{
+                from:"subscriptions",
+                localField:"_id",
+                foreignField:"subscriber",
+                as:"subscribedTo"
             }
         },
         // ab hum kuch fields aur add kr rhe h original User object me jo ki subscribersCount,channelsSubscribedToCount and isSubscribed
@@ -299,7 +299,6 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
                 coverImage: 1,
                 email: 1
             }
-
         }
     ])
     console.log(channel);
@@ -312,26 +311,28 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     const user = await User.aggregate([
         {
             $match: {
-                // _id:req.user?._id ye error aayega kyunki yha mongoose kam nhi krta aggregation pipeline ka jitna code h vo directly hi jata h to hme use krna hoga mongoose.Types.ObjectId(req.user?._id) taaki ye string ko ObjectId me convert kr de
-                _id: new mongoose.Types.ObjectId(req.user?._id) // hmne new kyu use kiya h
+                //aggregation me mongoose thora alg behave krta h. agr hmne req.user._id ko directly match me use kiya to ye match nhi karega. to hmne new mongoose.Types.ObjectId(req.user?._id) use kiya h taaki ye ObjectId me convert ho jae aur fir match ho jae . ye wali cheez isliye krni pd rhi h kyunki hm user ko jwt se verify kr rhe h aur fir user_id ko req.user me daal rhe h to ye string return krta h aur mongoose.ObjectId wala string ko objectId me convert krta hai vaise toh object id string me covert hoti h tb sirf objectId pe bss strings lg jati h
+                _id: new mongoose.Types.ObjectId(req.user?._id)
             }
-        },// isme sub pipeline likh di h taaki ek watch history aane ke baad owner ka name aa jaega watch history ke sath then fir usme hme jo cheez chahiyewoh cheez le lenge un watchHistories ka 
+        },// isme sub pipeline likh di h taaki ek watch history aane ke baad owner ka name aa jaega watch history ke sath then fir usme hme jo cheez chahiye woh cheez le lenge un watch Histories ka 
         {
             $lookup: {
-                from: "Video",
+                from: "videos",
                 localField: "watchHistory",
                 foreignField: "_id",
-                as: "watchHistory",
+                as: "watchingHistory",
                 pipeline: [
                     {
                         $lookup: {
-                            from: "user",
+                            from: "users",
                             localField: "owner",
                             foreignField: "_id",
-                            as: "owner",
-                            pipeline: [
+                            as: "own",
+                            pipeline: 
+                            [
                                 {
-                                    $project: {
+                                    $project: 
+                                    {
                                         fullName: 1,
                                         username: 1,
                                         avatar: 1
@@ -340,10 +341,11 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                             ]
                         }
                     },
-                    // ye wali pipeline mene iskiye use ki h taaki owner array me sirf ek hi object hoga.
+                    // ye wali pipeline mene iskiye use ki h taaki owner array ko sirf ek hi object me convert kr dega
                     {
-                        $addFields: {
-                            $owner: { $first: "$owner" }
+                        $addFields: 
+                        {
+                            own: { $first: "$own" } // idhar ab jo own array h usme sirf ek hi object h to hmne $first use kiya h taaki own array ko sirf ek hi object me convert kr dega
                         }
                     }
                 ]
@@ -389,3 +391,8 @@ export { registerUser, loginUser, logoutUser, refreshAccessToken, updateAccountD
 //       size: 107995
 //     }
 //   ]
+
+//from: "Video" → videos wale collection se data lena hai.
+// localField: "watchHistory" → current user ke document mein video IDs ki list hai.
+// foreignField: "_id" → Video collection mein un IDs ko _id se match karna hai.
+// as: "watchingHistory" → matching videos ko is array mein store karna hai.
