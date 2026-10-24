@@ -1,4 +1,3 @@
-import { User } from "../models/user.model.js"
 import { Video } from "../models/video.model.js"
 import { ApiError } from "../utils/apiError.js"
 import { apiresponse } from "../utils/apiResponse.js"
@@ -15,7 +14,7 @@ const getAllVideos= asyncHandler(async(req,res)=>{
     filter.$or =
     [
         {
-            title:{$regex:query},options:"i"
+            title:{$regex:query,options:"i"}
         },
         {
             description:{$regex:query,$options:"i"}
@@ -86,9 +85,30 @@ const getVideoById = asyncHandler(async (req, res) => {
 
     return res.status(200).json(new apiresponse(200,video,"get a video by videoid is successfully"))
 })
+
+const incrementVideoViews = asyncHandler(async(req,res)=>{
+      const {videoId} = req.params
+
+      const video = await Video.findById(videoId)
+      if(!video)
+      {
+        throw new ApiError(400,"video is not found")
+      }
+      const incviews = await Video.findOneAndUpdate({
+        _id:videoId,
+        isPublished:true
+      },
+      {
+        $inc:{views:1}
+      },
+      {
+        new:true
+      }
+    )
+    return res.status(200).json(new apiresponse(200,incviews,"video views increment is successfully"))
+})
 const updateAVideo  = asyncHandler(async (req,res)=>{
     const { videoId } = req.params;
-    
     const {title,description} = req.body
     const thumbnaillocalpath = req.file?.path
     if(!thumbnaillocalpath){throw new ApiError(400,"thumbnial is requires");}
@@ -136,6 +156,7 @@ const deleteVideo = asyncHandler(async (req,res)=>{
     const updatevideo = await video.save({validateBeforeSave:false})
 return res.status(200).json(new apiresponse(200,updatevideo,"video deletion is successfully done"))
 })
+
 const togglePublishStatus = asyncHandler(async(req,res)=>{
     const { videoId } = req.params
     const video = await Video.findOne({
@@ -153,7 +174,8 @@ const togglePublishStatus = asyncHandler(async(req,res)=>{
     const updatevideo = await video.save()
 return res.status(200).json(new apiresponse(200,updatevideo,"togglepublishstatus is updated"))
 })
-export {updateAVideo,getAllVideos,publishAVideo,getVideoById,deleteVideo,togglePublishStatus}
+export {updateAVideo,getAllVideos,publishAVideo,getVideoById,incrementVideoViews,deleteVideo,togglePublishStatus}
+
 
 
 
