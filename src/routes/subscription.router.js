@@ -1,5 +1,5 @@
 import {Router} from "express"
-import { toggleSubscription,getUserChannelSubscribers,getSubscribedChannels } from "/controllers/subscription.controller.js"
+import { toggleSubscription,getUserChannelSubscribers,getSubscribedChannels } from "../controllers/subscription.controller.js"
 
 const router = Router()
 
