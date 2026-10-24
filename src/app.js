@@ -6,8 +6,10 @@ import videoRouter from "./routes/video.router.js"
 import playlistRouter from "./routes/playlist.router.js"
 import tweetRouter from "./routes/tweet.router.js"
 import likeRouter from "./routes/like.router.js"
-// import subscriptionRouter from "./routes/subscription.router.js"
+import subscriptionRouter from "./routes/subscription.router.js"
 import commentRouter from "./routes/comment.router.js"
+import dashboardRouter from "./routes/dashboard.router.js"
+import healthCheckRouter from "./routes/healthcheck.router.js"
 const app = express()
 // app.get("/",(req,res)=>{
 // res.send("hiteshsir")
@@ -28,9 +30,11 @@ app.use("/api/v1/users", userRouter)// is path pr aane wali request ko userRoute
 app.use("/api/v1/videos",videoRouter)
 app.use("/api/v1/playlist",playlistRouter)
 app.use("/api/v1/likes",likeRouter)
-// app.use("/api/v1/subscriptions",subscriptionRouter)
+app.use("/api/v1/subscriptions",subscriptionRouter)
 app.use("/api/v1/tweet",tweetRouter)
 app.use("/api/v1/comment",commentRouter)
+app.use("/api/v1/dashboard",dashboardRouter)
+app.use("/api/v1/healthcheck",healthCheckRouter)
 export {app}
 
 
