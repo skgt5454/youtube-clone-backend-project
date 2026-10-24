@@ -8,7 +8,7 @@ import tweetRouter from "./routes/tweet.router.js"
 import likeRouter from "./routes/like.router.js"
 import subscriptionRouter from "./routes/subscription.router.js"
 import commentRouter from "./routes/comment.router.js"
-import dashboardRouter from "./routes/dashboard.router.js"
+import dashboardRouter from "./routes/userdashboard.router.js"
 import healthCheckRouter from "./routes/healthcheck.router.js"
 const app = express()
 // app.get("/",(req,res)=>{
